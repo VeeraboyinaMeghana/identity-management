@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Blockchain Identity Management</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      color: #fff;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      background: rgba(0,0,0,0.3);
+      padding: 40px;
+      border-radius: 15px;
+      width: 400px;
+      text-align: left;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+      transition: all 0.3s ease-in-out;
+    }
+
+    h1 {
+      font-size: 28px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    h3 {
+      color: #ffd700;
+    }
+    p, label {
+      font-size: 16px;
+    }
+
+    input, button, select, textarea {
+      font-size: 15px;
+      margin-top: 8px;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #ffd700;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: 0.3s;
+    }
+    button:hover { background-color: #e6c200; }
+    .logout { background-color: #ff4c4c; color: #fff; }
+    .logout:hover { background-color: #e03e3e; }
+
+    table {
+      width: 100%;
+      margin-top: 10px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 5px;
+    }
+    th, td { padding: 6px; font-size: 14px; text-align: left; }
+    th { color: #ffd700; }
+    .message { margin-top: 10px; font-weight: bold; color: #00ff99; }
+
+    textarea { resize: none; }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN PAGE -->
+  <div id="loginPage" class="container">
+    <h1>Sign In</h1>
+    <input type="email" id="loginEmail" placeholder="Enter your email"><br>
+    <input type="password" id="loginPassword" placeholder="Enter your password"><br>
+    <button onclick="login()">Sign In</button>
+    <p id="loginMsg" class="message"></p>
+  </div>
+
+  <!-- WELCOME PAGE -->
+  <div id="welcomePage" class="container" style="display:none;">
+    <h1>Welcome to Blockchain Identity</h1>
+    <button onclick="goToIdentity()">Next</button><br>
+    <button class="logout" onclick="logout()">Logout</button>
+  </div>
+
+  <!-- IDENTITY PAGE -->
+  <div id="identityPage" class="container" style="display:none;">
+    <h1>Your Decentralized Identity</h1>
+    <label>Name:</label>
+    <input type="text" id="name" placeholder="Enter your full name">
+    <label>Email:</label>
+    <input type="email" id="email" placeholder="Enter your email">
+    <label>Wallet Address:</label>
+    <input type="text" id="wallet" placeholder="Enter your blockchain wallet address" onblur="goToEditDetails()">
+    <button class="logout" onclick="backToWelcome()">Next</button>
+  </div>
+
+  <!-- EDIT DETAILS PAGE -->
+  <div id="editPage" class="container" style="display:none;">
+    <h1>Edit or Add Personal Details</h1>
+    <label>Address:</label>
+    <input type="text" id="address" placeholder="Enter your address">
+    <label>Date of Birth:</label>
+    <input type="date" id="dob">
+    <label>Gender:</label>
+    <select id="gender">
+      <option value="">Select gender</option>
+      <option value="Male">Male</option>
+      <option value="Female">Female</option>
+      <option value="Other">Other</option>
+    </select>
+    <label>Phone Number:</label>
+    <input type="text" id="phone" placeholder="Enter your phone number">
+    <label>Nationality:</label>
+    <input type="text" id="nationality" placeholder="Enter your nationality">
+    <label>Occupation:</label>
+    <input type="text" id="occupation" placeholder="Enter your occupation">
+
+    <button onclick="saveBasicDetails()">Save Details</button>
+    <button onclick="goToPasswordManager()">Manage Passwords</button>
+    <button class="logout" onclick="backToIdentity()">Next</button>
+    <p id="editMsg" class="message"></p>
+  </div>
+
+  <!-- PASSWORD MANAGER PAGE -->
+  <div id="passwordPage" class="container" style="display:none;">
+    <h1>🔐 Password Manager</h1>
+    <label>Website Name:</label>
+    <input type="text" id="siteName" placeholder="e.g. Gmail">
+    <label>Username / Email:</label>
+    <input type="text" id="siteUser" placeholder="Enter username/email">
+    <label>Password:</label>
+    <input type="password" id="sitePass" placeholder="Enter password">
+    <button onclick="savePassword()">Save Password</button>
+    <p id="passMsg" class="message"></p>
+    <h3>Saved Passwords</h3>
+    <table id="passwordTable">
+      <tr><th>Website</th><th>Username</th><th>Password</th><th>Action</th></tr>
+    </table>
+    <button class="logout" onclick="backToEdit()">Back</button>
+  </div>
+
+  <!-- SUCCESS PAGE -->
+  <div id="successPage" class="container" style="display:none;">
+    <h1>✅ All Details Saved!</h1>
+    <p>Your identity and password data are stored securely.</p>
+    <button onclick="backToWelcome()">Go to Dashboard</button>
+    <button class="logout" onclick="logout()">Logout</button>
+  </div>
+
+  <script>
+    function showPage(id){
+      ["loginPage","welcomePage","identityPage","editPage","passwordPage","successPage"]
+        .forEach(p=>document.getElementById(p).style.display="none");
+      document.getElementById(id).style.display="block";
+    }
+
+    window.onload = function(){
+      if(localStorage.getItem("userEmail")) showPage("welcomePage");
+      else showPage("loginPage");
+    };
+
+    function login(){
+      const email=document.getElementById("loginEmail").value.trim();
+      const pass=document.getElementById("loginPassword").value.trim();
+      if(!email||!pass){document.getElementById("loginMsg").textContent="Fill both fields.";return;}
+      localStorage.setItem("userEmail",email);
+      document.getElementById("loginMsg").textContent="Login successful!";
+      setTimeout(()=>showPage("welcomePage"),500);
+    }
+
+    function logout(){localStorage.clear();showPage("loginPage");}
+    function goToIdentity(){showPage("identityPage");}
+    function backToWelcome(){showPage("welcomePage");}
+    function backToIdentity(){showPage("identityPage");}
+    function backToEdit(){showPage("editPage");}
+
+    function goToEditDetails(){
+      const name=document.getElementById("name").value.trim();
+      const email=document.getElementById("email").value.trim();
+      const wallet=document.getElementById("wallet").value.trim();
+      if(!name||!email||!wallet){alert("Fill all fields first!");return;}
+      const basic={name,email,wallet};
+      localStorage.setItem("basicIdentity",JSON.stringify(basic));
+      showPage("editPage");
+    }
+
+    function saveBasicDetails(){
+      const extra={
+        address:document.getElementById("address").value,
+        dob:document.getElementById("dob").value,
+        gender:document.getElementById("gender").value,
+        phone:document.getElementById("phone").value,
+        nationality:document.getElementById("nationality").value,
+        occupation:document.getElementById("occupation").value
+      };
+      const basic=JSON.parse(localStorage.getItem("basicIdentity")||"{}");
+      const all={...basic,...extra};
+      localStorage.setItem("userIdentity",JSON.stringify(all));
+      document.getElementById("editMsg").textContent="Personal details saved!";
+    }
+
+    function goToPasswordManager(){
+      loadPasswords();
+      showPage("passwordPage");
+    }
+
+    function savePassword(){
+      const site=document.getElementById("siteName").value.trim();
+      const user=document.getElementById("siteUser").value.trim();
+      const pass=document.getElementById("sitePass").value.trim();
+      if(!site||!user||!pass){
+        document.getElementById("passMsg").textContent="Please fill all fields.";
+        return;
+      }
+      let passwords=JSON.parse(localStorage.getItem("passwords")||"[]");
+      passwords.push({site,user,pass});
+      localStorage.setItem("passwords",JSON.stringify(passwords));
+      document.getElementById("passMsg").textContent="Password saved!";
+      document.getElementById("siteName").value="";
+      document.getElementById("siteUser").value="";
+      document.getElementById("sitePass").value="";
+      loadPasswords();
+    }
+
+    function loadPasswords(){
+      const table=document.getElementById("passwordTable");
+      const data=JSON.parse(localStorage.getItem("passwords")||"[]");
+      table.innerHTML="<tr><th>Website</th><th>Username</th><th>Password</th><th>Action</th></tr>";
+      data.forEach((item,index)=>{
+        const row=table.insertRow();
+        row.insertCell(0).textContent=item.site;
+        row.insertCell(1).textContent=item.user;
+        row.insertCell(2).textContent=item.pass;
+        const del=row.insertCell(3);
+        const btn=document.createElement("button");
+        btn.textContent="Delete";
+        btn.onclick=()=>{deletePassword(index);};
+        del.appendChild(btn);
+      });
+    }
+
+    function deletePassword(i){
+      let data=JSON.parse(localStorage.getItem("passwords")||"[]");
+      data.splice(i,1);
+      localStorage.setItem("passwords",JSON.stringify(data));
+      loadPasswords();
+    }
+  </script>
+</body>
+</html>
